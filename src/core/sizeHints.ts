@@ -8,7 +8,7 @@ export function guessGenerationHint(size: number): string {
     case 0x20000:
       return 'This looks like a Generation III (Game Boy Advance) save, but its data did not pass structural validation. It may be corrupted, or use a save format variant (e.g. Japanese) that is not yet supported.';
     case 0x80000:
-      return 'This looks like it could be a Generation IV or V (Nintendo DS) save. Support is planned but not yet implemented.';
+      return 'This looks like a Generation IV or V (Nintendo DS) save, but its data did not pass structural validation. It may be corrupted, from a non-English version, or (if the moves/nicknames look like Pokémon Black/White/Black2/White2) from Generation V, which isn’t supported yet.';
     default:
       if (size > 0x100000) {
         return 'This looks like a Generation VI+ (3DS/Switch) save. These use console-specific encryption and are not supported yet — editing them incorrectly risks corrupting your save.';

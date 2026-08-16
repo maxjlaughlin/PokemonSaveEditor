@@ -5,26 +5,12 @@ import { GEN3_INTERNAL_TO_NATIONAL, GEN3_NATIONAL_TO_INTERNAL } from '../../data
 import { GEN3_BASE_STATS } from '../../data/baseStatsGen3';
 import { SPECIES_NAMES } from '../../data/speciesNames';
 import { SIZE_3PARTY, SIZE_3STORED } from './constants';
+import { calcModernStat as calcStat, natureMod } from '../shared/modernStats';
 
 function readU16LE(b: Uint8Array, o: number): number { return b[o] | (b[o + 1] << 8); }
 function writeU16LE(b: Uint8Array, o: number, v: number) { b[o] = v & 0xff; b[o + 1] = (v >> 8) & 0xff; }
 function readU32LE(b: Uint8Array, o: number): number { return (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0; }
 function writeU32LE(b: Uint8Array, o: number, v: number) { b[o] = v & 0xff; b[o + 1] = (v >> 8) & 0xff; b[o + 2] = (v >> 16) & 0xff; b[o + 3] = (v >>> 24) & 0xff; }
-
-/** Nature modifier for stat index 0=Atk,1=Def,2=Spe,3=SpA,4=SpD. */
-function natureMod(nature: number, statIndex: number): number {
-  const row = Math.floor(nature / 5);
-  const col = nature % 5;
-  if (row === col) return 1;
-  if (statIndex === row) return 1.1;
-  if (statIndex === col) return 0.9;
-  return 1;
-}
-
-function calcStat(base: number, iv: number, ev: number, level: number, isHp: boolean, mod = 1): number {
-  const core = Math.floor((2 * base + iv + Math.floor(ev / 4)) * level / 100);
-  return isHp ? core + level + 10 : Math.floor((core + 5) * mod);
-}
 
 function genderFromPid(genderRatio: number, pid: number): 'M' | 'F' | 'U' {
   if (genderRatio === 255) return 'U';

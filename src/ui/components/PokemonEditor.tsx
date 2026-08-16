@@ -171,8 +171,17 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
                   </label>
                 )
               )}
-              {!pokemon.genderEditable && (pokemon.gender === 'M' || pokemon.gender === 'F') && (
-                <label title="Gender is derived from IVs in this generation, not stored independently.">
+              {pokemon.genderEditable ? (
+                <label>
+                  Gender
+                  <select value={pokemon.gender} onChange={(e) => update({ gender: e.target.value as EditablePokemon['gender'] })}>
+                    <option value="M">♂ Male</option>
+                    <option value="F">♀ Female</option>
+                    <option value="U">Genderless</option>
+                  </select>
+                </label>
+              ) : (pokemon.gender === 'M' || pokemon.gender === 'F') && (
+                <label title="Gender is derived from IVs/PID in this generation, not stored independently.">
                   Gender (derived)
                   <input type="text" value={pokemon.gender === 'M' ? '♂ Male' : '♀ Female'} disabled />
                 </label>
