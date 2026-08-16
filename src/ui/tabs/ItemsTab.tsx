@@ -7,21 +7,26 @@ interface Props {
   touch: () => void;
 }
 
-const BAG_CAPACITY = 20;
-
-function pad(items: ItemSlot[]): ItemSlot[] {
-  const out = items.slice(0, BAG_CAPACITY).map((s) => ({ ...s }));
-  while (out.length < BAG_CAPACITY) out.push({ item: 0, quantity: 0 });
+function pad(items: ItemSlot[], capacity: number): ItemSlot[] {
+  const out = items.slice(0, capacity).map((s) => ({ ...s }));
+  while (out.length < capacity) out.push({ item: 0, quantity: 0 });
   return out;
 }
 
 export function ItemsTab({ save, touch }: Props) {
   const itemNames = getItemNames(save.generation);
-  const [rows, setRows] = useState<ItemSlot[]>(() => pad(save.items));
+  const [pouchIndex, setPouchIndex] = useState(0);
+  const pouch = save.itemPouches[pouchIndex];
+  const [rows, setRows] = useState<ItemSlot[]>(() => pad(pouch.items, pouch.capacity));
+
+  const selectPouch = (i: number) => {
+    setPouchIndex(i);
+    setRows(pad(save.itemPouches[i].items, save.itemPouches[i].capacity));
+  };
 
   const commit = (next: ItemSlot[]) => {
     setRows(next);
-    save.items = next.filter((s) => s.item !== 0 && s.quantity > 0);
+    pouch.items = next.filter((s) => s.item !== 0 && s.quantity > 0);
     touch();
   };
 
@@ -32,7 +37,19 @@ export function ItemsTab({ save, touch }: Props) {
 
   return (
     <div className="items-tab">
-      <p className="hint">Item bag (max {BAG_CAPACITY} slots). Set item to "(None)" or quantity to 0 to clear a slot.</p>
+      {save.itemPouches.length > 1 && (
+        <div className="box-selector">
+          <label>
+            Pouch
+            <select value={pouchIndex} onChange={(e) => selectPouch(Number(e.target.value))}>
+              {save.itemPouches.map((p, i) => (
+                <option key={i} value={i}>{p.name}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+      <p className="hint">{pouch.name} (max {pouch.capacity} slots). Set item to "(None)" or quantity to 0 to clear a slot.</p>
       <table className="items-table">
         <thead>
           <tr><th>#</th><th>Item</th><th>Quantity</th></tr>

@@ -2,7 +2,7 @@
 export function guessGenerationHint(size: number): string {
   switch (size) {
     case 0x8000:
-      return 'This looks like it could be a Generation I or II (Game Boy) save. Generation II support is planned but not yet implemented.';
+      return 'This looks like it could be a Generation I or II (Game Boy) save, but its data did not pass structural or checksum validation. It may be corrupted, or from a Japanese/Korean version (not yet supported).';
     case 0x10000:
     case 0x20000:
       return 'This looks like it could be a Generation III (Game Boy Advance) save. Support is planned but not yet implemented.';

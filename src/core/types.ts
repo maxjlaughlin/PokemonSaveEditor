@@ -16,6 +16,7 @@ export interface GenerationCapabilities {
   boxSlotCount: number;
   maxStringLengthTrainer: number;
   maxStringLengthNickname: number;
+  badgeCount: number;
 }
 
 export interface Stats {
@@ -54,6 +55,10 @@ export interface EditablePokemon {
   isShiny: boolean;
   shinyEditable: boolean;
   friendship: number;
+  /** Raw pass-through fields not surfaced in the UI yet, preserved across edits so exporting an
+   *  unrelated change doesn't silently wipe them (Gen2+: Pokerus status byte / met-data word). */
+  pokerus: number;
+  metInfo: number;
 }
 
 export interface Trainer {
@@ -66,6 +71,13 @@ export interface Trainer {
 export interface ItemSlot {
   item: number;
   quantity: number;
+}
+
+/** A named item storage list (Gen1 has one bag + PC; Gen2+ splits into several typed pouches). */
+export interface ItemPouch {
+  name: string;
+  capacity: number;
+  items: ItemSlot[];
 }
 
 export interface EditableBox {
@@ -81,7 +93,7 @@ export interface SaveFile {
   trainer: Trainer;
   party: EditablePokemon[];
   boxes: EditableBox[];
-  items: ItemSlot[];
+  itemPouches: ItemPouch[];
   /** Re-serializes current in-memory state (with edits applied) back to a valid save file, recomputing all checksums. */
   toBytes(): Uint8Array;
   /** A blank/empty Pokemon value appropriate for this generation, used to populate or clear a slot. */

@@ -4,6 +4,7 @@ import { GEN1_INTERNAL_TO_NATIONAL, GEN1_NATIONAL_TO_INTERNAL } from '../../data
 import { GEN1_BASE_STATS } from '../../data/baseStatsGen1';
 import { MAX_STRING_LENGTH_NICKNAME, MAX_STRING_LENGTH_TRAINER, SIZE_PARTY, SIZE_STORED, STRING_BUFFER_LENGTH } from './constants';
 import { SPECIES_NAMES } from '../../data/speciesNames';
+import { calcDvStat, packDvs, unpackDvs, hpDvFrom } from '../shared/dvStats';
 
 function readU16BE(b: Uint8Array, o: number): number {
   return (b[o] << 8) | b[o + 1];
@@ -13,22 +14,7 @@ function writeU16BE(b: Uint8Array, o: number, v: number) {
   b[o + 1] = v & 0xff;
 }
 
-/** Gen1/2 stat formula from DVs (0-15) and Stat Experience (0-65535). */
-export function calcGen1Stat(base: number, dv: number, statExp: number, level: number, isHp: boolean): number {
-  const evBonus = Math.floor(Math.sqrt(Math.min(statExp, 65535)) / 4);
-  const core = Math.floor(((base + dv) * 2 + evBonus) * level / 100);
-  return isHp ? core + level + 10 : core + 5;
-}
-
-function packDvs(atk: number, def: number, spe: number, spc: number): [number, number] {
-  return [((atk & 0xf) << 4) | (def & 0xf), ((spe & 0xf) << 4) | (spc & 0xf)];
-}
-function unpackDvs(b0: number, b1: number) {
-  return { atk: (b0 >> 4) & 0xf, def: b0 & 0xf, spe: (b1 >> 4) & 0xf, spc: b1 & 0xf };
-}
-function hpDvFrom(atk: number, def: number, spe: number, spc: number): number {
-  return ((atk & 1) << 3) | ((def & 1) << 2) | ((spe & 1) << 1) | (spc & 1);
-}
+export const calcGen1Stat = calcDvStat;
 
 export const emptyGen1Pokemon = (): EditablePokemon => ({
   isEmpty: true,
@@ -56,6 +42,8 @@ export const emptyGen1Pokemon = (): EditablePokemon => ({
   isShiny: false,
   shinyEditable: false,
   friendship: 0,
+  pokerus: 0,
+  metInfo: 0,
 });
 
 /** Reads one Gen1 Pokemon from its body bytes (33 or 44 bytes) plus OT/nickname string buffers. */
@@ -112,6 +100,8 @@ export function readGen1Pokemon(body: Uint8Array, ot: Uint8Array, nickname: Uint
     isShiny: false,
     shinyEditable: false,
     friendship: 0,
+    pokerus: 0,
+    metInfo: 0,
   };
 }
 

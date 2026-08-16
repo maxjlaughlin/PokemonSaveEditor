@@ -8,7 +8,7 @@ file is read and written locally in the browser and is never uploaded anywhere.
 | Generation | Games | Status |
 | --- | --- | --- |
 | I | Red / Blue / Yellow | ✅ Implemented (trainer info, party, boxes, items) |
-| II | Gold / Silver / Crystal | Planned |
+| II | Gold / Silver / Crystal | ✅ Implemented (trainer info, party, boxes, 5 item pouches, held items) |
 | III | Ruby / Sapphire / Emerald / FireRed / LeafGreen | Planned |
 | IV | Diamond / Pearl / Platinum / HeartGold / SoulSilver | Planned |
 | V | Black / White / Black 2 / White 2 | Planned |
@@ -25,6 +25,7 @@ npm install
 npm run dev       # start the dev server
 npm run build     # type-check + production build
 npm run test:gen1 # synthetic round-trip test for the Gen1 save format
+npm run test:gen2 # synthetic round-trip test for the Gen2 save format
 ```
 
 ## Architecture

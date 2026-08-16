@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:gen1": "tsx scripts/gen1-roundtrip-test.mjs"
+    "test:gen1": "tsx scripts/gen1-roundtrip-test.mjs",
+    "test:gen2": "tsx scripts/gen2-roundtrip-test.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

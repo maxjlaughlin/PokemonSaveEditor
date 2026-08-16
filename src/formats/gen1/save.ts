@@ -1,7 +1,9 @@
-import type { EditableBox, GenerationCapabilities, ItemSlot, SaveFile, SaveFormatModule } from '../../core/types';
+import type { EditableBox, GenerationCapabilities, ItemPouch, SaveFile, SaveFormatModule } from '../../core/types';
 import { decodeGen1Text, encodeGen1Text } from './text';
 import { unpackGen1List, packGen1List } from './list';
 import { emptyGen1Pokemon } from './pokemon';
+import { readGbItemList, writeGbItemList } from '../shared/itemList';
+import { readBcdMoney, writeBcdMoney } from '../shared/bcd';
 import {
   BOX_COUNT,
   BOX_SLOT_COUNT,
@@ -19,6 +21,7 @@ import {
 } from './constants';
 
 const ITEM_BAG_CAPACITY = 20;
+const PC_ITEM_CAPACITY = 50;
 
 const CAPABILITIES: GenerationCapabilities = {
   generation: 1,
@@ -35,47 +38,8 @@ const CAPABILITIES: GenerationCapabilities = {
   boxSlotCount: BOX_SLOT_COUNT,
   maxStringLengthTrainer: MAX_STRING_LENGTH_TRAINER,
   maxStringLengthNickname: MAX_STRING_LENGTH_NICKNAME,
+  badgeCount: 8,
 };
-
-function readBcdMoney(bytes: Uint8Array, offset: number): number {
-  let money = 0;
-  for (let i = 0; i < 3; i++) {
-    const byte = bytes[offset + i];
-    money = money * 100 + ((byte >> 4) & 0xf) * 10 + (byte & 0xf);
-  }
-  return money;
-}
-
-function writeBcdMoney(bytes: Uint8Array, offset: number, value: number) {
-  let v = Math.max(0, Math.min(999999, Math.floor(value)));
-  for (let i = 2; i >= 0; i--) {
-    const digits = v % 100;
-    v = Math.floor(v / 100);
-    bytes[offset + i] = ((Math.floor(digits / 10) & 0xf) << 4) | (digits % 10);
-  }
-}
-
-function readItems(bytes: Uint8Array, offset: number, capacity: number): ItemSlot[] {
-  const count = Math.min(bytes[offset], capacity);
-  const items: ItemSlot[] = [];
-  for (let i = 0; i < count; i++) {
-    const item = bytes[offset + 1 + i * 2];
-    const quantity = bytes[offset + 2 + i * 2];
-    if (item === 0xff) break;
-    items.push({ item, quantity });
-  }
-  return items;
-}
-
-function writeItems(bytes: Uint8Array, offset: number, items: ItemSlot[], capacity: number) {
-  const trimmed = items.filter((i) => i.item !== 0 && i.quantity > 0).slice(0, capacity);
-  bytes[offset] = trimmed.length;
-  trimmed.forEach((slot, i) => {
-    bytes[offset + 1 + i * 2] = slot.item;
-    bytes[offset + 2 + i * 2] = slot.quantity;
-  });
-  bytes[offset + 1 + trimmed.length * 2] = 0xff;
-}
 
 function computeChecksum(bytes: Uint8Array, start: number, end: number): number {
   let sum = 0;
@@ -91,8 +55,7 @@ class Gen1SaveFile implements SaveFile {
   trainer;
   party;
   boxes: EditableBox[];
-  items: ItemSlot[];
-  pcItems: ItemSlot[];
+  itemPouches: ItemPouch[];
   private currentBoxIndex: number;
 
   constructor(bytes: Uint8Array, fileName: string) {
@@ -121,8 +84,10 @@ class Gen1SaveFile implements SaveFile {
       this.boxes.push({ name: `Box ${i + 1}`, pokemon: unpackGen1List(listBytes, BOX_SLOT_COUNT, SIZE_STORED) });
     }
 
-    this.items = readItems(this.bytes, o.items, ITEM_BAG_CAPACITY);
-    this.pcItems = readItems(this.bytes, o.pcItems, 50);
+    this.itemPouches = [
+      { name: 'Items', capacity: ITEM_BAG_CAPACITY, items: readGbItemList(this.bytes, o.items, ITEM_BAG_CAPACITY) },
+      { name: 'PC', capacity: PC_ITEM_CAPACITY, items: readGbItemList(this.bytes, o.pcItems, PC_ITEM_CAPACITY) },
+    ];
   }
 
   toBytes(): Uint8Array {
@@ -144,8 +109,8 @@ class Gen1SaveFile implements SaveFile {
       if (i === this.currentBoxIndex) out.set(listBytes, o.currentBox);
     }
 
-    writeItems(out, o.items, this.items, ITEM_BAG_CAPACITY);
-    writeItems(out, o.pcItems, this.pcItems, 50);
+    writeGbItemList(out, o.items, this.itemPouches[0].items, ITEM_BAG_CAPACITY);
+    writeGbItemList(out, o.pcItems, this.itemPouches[1].items, PC_ITEM_CAPACITY);
 
     out[o.checksumOfs] = computeChecksum(out, o.ot, o.checksumOfs);
     return out;
@@ -156,12 +121,21 @@ class Gen1SaveFile implements SaveFile {
   }
 }
 
+function isListValid(bytes: Uint8Array, offset: number, maxCount: number): boolean {
+  const count = bytes[offset];
+  return count <= maxCount && bytes[offset + 1 + count] === 0xff;
+}
+
 export const gen1Module: SaveFormatModule = {
   generation: 1,
   detect(bytes: Uint8Array): boolean {
     if (bytes.length !== SAVE_SIZE) return false;
-    const checksum = computeChecksum(bytes, OFFSETS_INT.ot, OFFSETS_INT.checksumOfs);
-    return bytes[OFFSETS_INT.checksumOfs] === checksum;
+    const o = OFFSETS_INT;
+    // Structural check first (like the party/box list headers) to avoid colliding with same-sized
+    // Gen2 saves, then confirm with the checksum.
+    if (!isListValid(bytes, o.party, PARTY_SLOT_COUNT) || !isListValid(bytes, o.currentBox, BOX_SLOT_COUNT)) return false;
+    const checksum = computeChecksum(bytes, o.ot, o.checksumOfs);
+    return bytes[o.checksumOfs] === checksum;
   },
   load(bytes: Uint8Array, fileName: string): SaveFile {
     return new Gen1SaveFile(bytes, fileName);

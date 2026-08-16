@@ -59,7 +59,7 @@ save.boxes[2].pokemon[0] = {
   ivs: { hp: 15, atk: 15, def: 15, spa: 15, spd: 15, spe: 15 },
 };
 
-save.items = [{ item: 1, quantity: 5 }, { item: 4, quantity: 1 }];
+save.itemPouches[0].items = [{ item: 1, quantity: 5 }, { item: 4, quantity: 1 }];
 
 const out = save.toBytes();
 assert(out.length === 0x8000, 'output save is 32KB');
@@ -93,9 +93,10 @@ assert(b.nickname === 'MEWTWO', `box mewtwo nickname roundtrip: ${b.nickname}`);
 assert(b.level === 70, `box mewtwo level roundtrip: ${b.level}`);
 assert(b.ivs.hp === 15 && b.ivs.spe === 15, `box mewtwo ivs roundtrip: ${JSON.stringify(b.ivs)}`);
 
-assert(reloaded.items.length === 2, `items count roundtrip: ${reloaded.items.length}`);
-assert(reloaded.items[0].item === 1 && reloaded.items[0].quantity === 5, 'item[0] roundtrip');
-assert(reloaded.items[1].item === 4 && reloaded.items[1].quantity === 1, 'item[1] roundtrip');
+const items = reloaded.itemPouches[0].items;
+assert(items.length === 2, `items count roundtrip: ${items.length}`);
+assert(items[0].item === 1 && items[0].quantity === 5, 'item[0] roundtrip');
+assert(items[1].item === 4 && items[1].quantity === 1, 'item[1] roundtrip');
 
 // double-export idempotency: exporting twice from the same in-memory state should be byte-identical
 const out2 = reloaded.toBytes();

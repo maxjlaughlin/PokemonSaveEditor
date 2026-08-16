@@ -1,6 +1,7 @@
 import type { EditablePokemon, GenerationCapabilities } from '../../core/types';
 import { SPECIES_NAMES } from '../../data/speciesNames';
 import { MOVE_NAMES } from '../../data/moveNames';
+import { getItemNames } from '../../data/itemNames';
 
 interface Props {
   pokemon: EditablePokemon;
@@ -23,6 +24,7 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
 
   const maxSpecies = Math.min(capabilities.natDexMax, SPECIES_OPTIONS.length);
   const speciesChoices = SPECIES_OPTIONS.filter((s) => s.id <= maxSpecies);
+  const itemNames = getItemNames(capabilities.generation);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -116,6 +118,35 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
                   onChange={(e) => update({ exp: clamp(Number(e.target.value), 0, 16777215) })}
                 />
               </label>
+              {pokemon.heldItemSupported && (
+                <label>
+                  Held item
+                  <select value={pokemon.item} onChange={(e) => update({ item: Number(e.target.value) })}>
+                    {itemNames.map((name, id) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label>
+                Friendship
+                <input
+                  type="number" min={0} max={255} value={pokemon.friendship}
+                  onChange={(e) => update({ friendship: clamp(Number(e.target.value), 0, 255) })}
+                />
+              </label>
+              {!pokemon.genderEditable && (pokemon.gender === 'M' || pokemon.gender === 'F') && (
+                <label title="Gender is derived from IVs in this generation, not stored independently.">
+                  Gender (derived)
+                  <input type="text" value={pokemon.gender === 'M' ? '♂ Male' : '♀ Female'} disabled />
+                </label>
+              )}
+              {!pokemon.shinyEditable && (
+                <label title="Shininess is derived from IVs in this generation, not stored independently.">
+                  Shiny (derived)
+                  <input type="text" value={pokemon.isShiny ? 'Yes ✦' : 'No'} disabled />
+                </label>
+              )}
             </div>
 
             <fieldset>

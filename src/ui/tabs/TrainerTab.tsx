@@ -45,7 +45,7 @@ export function TrainerTab({ save, touch }: Props) {
       <fieldset>
         <legend>Badges</legend>
         <div className="badge-grid">
-          {Array.from({ length: 8 }, (_, i) => (
+          {Array.from({ length: capabilities.badgeCount }, (_, i) => (
             <label key={i} className="badge-checkbox">
               <input
                 type="checkbox"
@@ -55,7 +55,7 @@ export function TrainerTab({ save, touch }: Props) {
                   touch();
                 }}
               />
-              Badge {i + 1}
+              {badgeLabel(i, capabilities.badgeCount)}
             </label>
           ))}
         </div>
@@ -67,4 +67,9 @@ export function TrainerTab({ save, touch }: Props) {
 function clamp(v: number, min: number, max: number): number {
   if (Number.isNaN(v)) return min;
   return Math.max(min, Math.min(max, Math.round(v)));
+}
+
+function badgeLabel(i: number, total: number): string {
+  if (total === 16) return i < 8 ? `Johto Badge ${i + 1}` : `Kanto Badge ${i - 7}`;
+  return `Badge ${i + 1}`;
 }
