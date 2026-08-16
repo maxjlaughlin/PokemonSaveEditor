@@ -31,6 +31,7 @@ const CAPABILITIES: GenerationCapabilities = {
   hasGenderField: false, // Gen2 gender is derived from Attack IV, not a stored field
   hasPID: false,
   ivMax: 15,
+  hpIvIndependent: false,
   evMax: 65535,
   natDexMax: 251,
   maxMoney: 999999,

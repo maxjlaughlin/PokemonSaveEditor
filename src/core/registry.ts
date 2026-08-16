@@ -1,8 +1,9 @@
 import type { SaveFile, SaveFormatModule } from './types';
 import { gen1Module } from '../formats/gen1/save';
 import { gen2Module } from '../formats/gen2/save';
+import { gen3Module } from '../formats/gen3/save';
 
-const MODULES: SaveFormatModule[] = [gen1Module, gen2Module];
+const MODULES: SaveFormatModule[] = [gen1Module, gen2Module, gen3Module];
 
 export class UnsupportedSaveError extends Error {
   fileSize: number;

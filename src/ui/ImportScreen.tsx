@@ -71,7 +71,9 @@ export function ImportScreen({ onLoaded }: Props) {
           <li className={SUPPORTED_GENERATIONS.includes(2) ? 'supported' : 'unsupported'}>
             Gen II — Gold / Silver / Crystal {SUPPORTED_GENERATIONS.includes(2) ? '✓' : '(planned)'}
           </li>
-          <li className="unsupported">Gen III — Ruby / Sapphire / Emerald / FireRed / LeafGreen (planned)</li>
+          <li className={SUPPORTED_GENERATIONS.includes(3) ? 'supported' : 'unsupported'}>
+            Gen III — Ruby / Sapphire / Emerald / FireRed / LeafGreen {SUPPORTED_GENERATIONS.includes(3) ? '✓' : '(planned)'}
+          </li>
           <li className="unsupported">Gen IV — Diamond / Pearl / Platinum / HeartGold / SoulSilver (planned)</li>
           <li className="unsupported">Gen V — Black / White / Black 2 / White 2 (planned)</li>
           <li className="unsupported">Gen VI+ — 3DS / Switch titles use console-specific encryption; not currently planned</li>

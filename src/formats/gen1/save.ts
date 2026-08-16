@@ -31,6 +31,7 @@ const CAPABILITIES: GenerationCapabilities = {
   hasGenderField: false,
   hasPID: false,
   ivMax: 15,
+  hpIvIndependent: false,
   evMax: 65535,
   natDexMax: 151,
   maxMoney: 999999,

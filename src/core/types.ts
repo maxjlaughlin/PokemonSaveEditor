@@ -9,6 +9,8 @@ export interface GenerationCapabilities {
   hasGenderField: boolean; // explicit gender byte (gen3+); gen2 derives from IV, gen1 has no gender
   hasPID: boolean;
   ivMax: number; // 15 for gen1/2 (DVs), 31 for gen3+
+  /** Whether HP IV is stored independently (gen3+) vs. derived from the other IVs' low bits (gen1/2). */
+  hpIvIndependent: boolean;
   evMax: number; // per-stat max
   natDexMax: number;
   maxMoney: number;
@@ -48,17 +50,24 @@ export interface EditablePokemon {
   heldItemSupported: boolean;
   nature: number;
   natureSupported: boolean;
+  natureEditable: boolean;
   ability: number;
   abilitySupported: boolean;
+  abilityEditable: boolean;
   gender: 'M' | 'F' | 'U';
   genderEditable: boolean;
   isShiny: boolean;
   shinyEditable: boolean;
   friendship: number;
+  /** Whether the Level field is independently stored and thus actually saved when edited (Gen3+
+   *  box-stored Pokemon only store Experience; level is derived and not independently editable). */
+  levelEditable: boolean;
   /** Raw pass-through fields not surfaced in the UI yet, preserved across edits so exporting an
-   *  unrelated change doesn't silently wipe them (Gen2+: Pokerus status byte / met-data word). */
+   *  unrelated change doesn't silently wipe them (Gen2: Pokerus status byte / met-data word.
+   *  Gen3+: also bundles PID/secret ID/met-location, since nature/gender/shiny/ability derive from PID). */
   pokerus: number;
   metInfo: number;
+  pid: number;
 }
 
 export interface Trainer {

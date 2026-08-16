@@ -2,6 +2,8 @@ import type { EditablePokemon, GenerationCapabilities } from '../../core/types';
 import { SPECIES_NAMES } from '../../data/speciesNames';
 import { MOVE_NAMES } from '../../data/moveNames';
 import { getItemNames } from '../../data/itemNames';
+import { NATURE_NAMES } from '../../data/natureNames';
+import { ABILITY_NAMES } from '../../data/abilityNames';
 
 interface Props {
   pokemon: EditablePokemon;
@@ -81,10 +83,10 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
                   onChange={(e) => update({ nickname: e.target.value.toUpperCase() })}
                 />
               </label>
-              <label>
-                Level
+              <label title={pokemon.levelEditable ? undefined : "This generation doesn't store level independently for boxed Pokémon (only Experience) — edit Experience instead."}>
+                Level{!pokemon.levelEditable && ' (not stored for boxed Pokémon)'}
                 <input
-                  type="number" min={1} max={100} value={pokemon.level}
+                  type="number" min={1} max={100} value={pokemon.level} disabled={!pokemon.levelEditable}
                   onChange={(e) => update({ level: clamp(Number(e.target.value), 1, 100) })}
                 />
               </label>
@@ -135,6 +137,40 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
                   onChange={(e) => update({ friendship: clamp(Number(e.target.value), 0, 255) })}
                 />
               </label>
+              {pokemon.natureSupported && (
+                pokemon.natureEditable ? (
+                  <label>
+                    Nature
+                    <select value={pokemon.nature} onChange={(e) => update({ nature: Number(e.target.value) })}>
+                      {NATURE_NAMES.map((name, id) => (
+                        <option key={id} value={id}>{name}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label title="Nature is derived from this Pokémon's Personality Value, not independently editable in this editor.">
+                    Nature (derived)
+                    <input type="text" value={NATURE_NAMES[pokemon.nature] ?? '?'} disabled />
+                  </label>
+                )
+              )}
+              {pokemon.abilitySupported && (
+                pokemon.abilityEditable ? (
+                  <label>
+                    Ability
+                    <select value={pokemon.ability} onChange={(e) => update({ ability: Number(e.target.value) })}>
+                      {ABILITY_NAMES.map((name, id) => (
+                        <option key={id} value={id}>{name}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label title="Ability is derived from this Pokémon's Personality Value, not independently editable in this editor.">
+                    Ability (derived)
+                    <input type="text" value={ABILITY_NAMES[pokemon.ability] ?? '?'} disabled />
+                  </label>
+                )
+              )}
               {!pokemon.genderEditable && (pokemon.gender === 'M' || pokemon.gender === 'F') && (
                 <label title="Gender is derived from IVs in this generation, not stored independently.">
                   Gender (derived)
@@ -190,6 +226,15 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
             <fieldset>
               <legend>IVs (0–{capabilities.ivMax})</legend>
               <div className="stat-grid">
+                {capabilities.hpIvIndependent && (
+                  <label>
+                    HP
+                    <input
+                      type="number" min={0} max={capabilities.ivMax} value={pokemon.ivs.hp}
+                      onChange={(e) => updateStat('ivs', 'hp', clamp(Number(e.target.value), 0, capabilities.ivMax))}
+                    />
+                  </label>
+                )}
                 {(['atk', 'def', 'spa', 'spd', 'spe'] as const).map((key) => (
                   <label key={key}>
                     {statLabel(key)}
@@ -199,10 +244,12 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
                     />
                   </label>
                 ))}
-                <label title="HP IV is derived from the other IVs in this generation, not stored independently.">
-                  HP (derived)
-                  <input type="number" value={pokemon.ivs.hp} disabled />
-                </label>
+                {!capabilities.hpIvIndependent && (
+                  <label title="HP IV is derived from the other IVs in this generation, not stored independently.">
+                    HP (derived)
+                    <input type="number" value={pokemon.ivs.hp} disabled />
+                  </label>
+                )}
               </div>
             </fieldset>
 

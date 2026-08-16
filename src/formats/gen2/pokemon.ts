@@ -32,15 +32,19 @@ export const emptyGen2Pokemon = (): EditablePokemon => ({
   heldItemSupported: true,
   nature: 0,
   natureSupported: false,
+  natureEditable: false,
   ability: 0,
   abilitySupported: false,
+  abilityEditable: false,
   gender: 'U',
   genderEditable: false,
   isShiny: false,
   shinyEditable: false,
   friendship: 0,
+  levelEditable: true,
   pokerus: 0,
   metInfo: 0,
+  pid: 0,
 });
 
 /** Reads one Gen2 Pokemon from its body bytes (32 or 48 bytes) plus OT/nickname string buffers. */
@@ -94,15 +98,19 @@ export function readGen2Pokemon(body: Uint8Array, ot: Uint8Array, nickname: Uint
     heldItemSupported: true,
     nature: 0,
     natureSupported: false,
+  natureEditable: false,
     ability: 0,
     abilitySupported: false,
+  abilityEditable: false,
     gender: genderFromAtkDv(genderRatio, dv.atk),
     genderEditable: false,
     isShiny: isShinyGen2(dv.atk, dv.def, dv.spe, dv.spc),
     shinyEditable: false,
     friendship,
+    levelEditable: true,
     pokerus,
     metInfo,
+    pid: 0,
   };
 }
 

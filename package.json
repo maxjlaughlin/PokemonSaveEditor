@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test:gen1": "tsx scripts/gen1-roundtrip-test.mjs",
-    "test:gen2": "tsx scripts/gen2-roundtrip-test.mjs"
+    "test:gen2": "tsx scripts/gen2-roundtrip-test.mjs",
+    "test:gen3": "tsx scripts/gen3-roundtrip-test.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

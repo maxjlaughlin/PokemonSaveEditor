@@ -9,7 +9,7 @@ file is read and written locally in the browser and is never uploaded anywhere.
 | --- | --- | --- |
 | I | Red / Blue / Yellow | ✅ Implemented (trainer info, party, boxes, items) |
 | II | Gold / Silver / Crystal | ✅ Implemented (trainer info, party, boxes, 5 item pouches, held items) |
-| III | Ruby / Sapphire / Emerald / FireRed / LeafGreen | Planned |
+| III | Ruby / Sapphire / Emerald / FireRed / LeafGreen | ✅ Implemented (trainer info, party, boxes, 6 item pockets, held items, nature/ability/gender/shiny display) |
 | IV | Diamond / Pearl / Platinum / HeartGold / SoulSilver | Planned |
 | V | Black / White / Black 2 / White 2 | Planned |
 | VI+ | 3DS / Switch titles | Not currently planned — these use console-specific encryption that makes them significantly higher risk to get wrong |
@@ -17,6 +17,13 @@ file is read and written locally in the browser and is never uploaded anywhere.
 Event injection (setting the flags needed to trigger in-game events, not just
 handing over an item) is planned as a follow-up once core editing is solid
 across more generations.
+
+Some fields are derived from a Pokémon's Personality Value (PID) rather than
+stored independently — Gen II gender/shininess, Gen III nature/ability/
+gender/shininess. These are shown read-only rather than edited directly, since
+"editing" them really means regenerating the PID, which this editor doesn't
+do yet. Gen III box-stored Pokémon also don't store level directly (only
+Experience), so Level is shown as read-only for boxed (non-party) Pokémon.
 
 ## Development
 
@@ -26,6 +33,7 @@ npm run dev       # start the dev server
 npm run build     # type-check + production build
 npm run test:gen1 # synthetic round-trip test for the Gen1 save format
 npm run test:gen2 # synthetic round-trip test for the Gen2 save format
+npm run test:gen3 # synthetic round-trip test for the Gen3 save format
 ```
 
 ## Architecture
