@@ -243,6 +243,12 @@ button.primary {
   color: inherit;
 }
 
+.pokemon-slot .slot-sprite {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .pokemon-slot.filled {
   border-color: var(--accent-border);
   background: var(--accent-bg);
@@ -312,8 +318,26 @@ button.primary {
   margin-bottom: 12px;
 }
 
+.editor-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor-sprite {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .modal h2 {
   margin: 0;
+}
+
+.field-grid label.shiny-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
 }
 
 .close-btn {

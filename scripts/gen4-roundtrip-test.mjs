@@ -1,6 +1,7 @@
 // Synthetic round-trip validation for the Gen4 (Platinum) save module.
 import { gen4Module } from '../src/formats/gen4/save.ts';
 import { OFFSETS, PARTITION_SIZE } from '../src/formats/gen4/constants.ts';
+import { applyShinyToggle } from '../src/formats/shared/shinyEdit.ts';
 
 function assert(cond, msg) {
   if (!cond) throw new Error('FAIL: ' + msg);
@@ -147,6 +148,26 @@ if (identical) {
   }
 }
 assert(identical, 'export is idempotent (export -> reload -> export gives identical bytes)');
+
+// Shiny toggle: regenerating the PID should flip shininess while preserving nature (ability/gender
+// are stored independently in Gen4, so they're untouched regardless).
+const freshForShiny = gen4Module.load(out);
+const mon0 = freshForShiny.party[0];
+const shinyPatch = applyShinyToggle(mon0, 4, true);
+assert(shinyPatch.isShiny === true, 'shiny toggle on produces isShiny=true');
+assert(shinyPatch.pid % 25 === mon0.nature, `shiny toggle preserves nature: pid%25=${shinyPatch.pid % 25} vs nature=${mon0.nature}`);
+freshForShiny.party[0] = { ...mon0, ...shinyPatch };
+const shinyReloaded = gen4Module.load(freshForShiny.toBytes()).party[0];
+assert(shinyReloaded.isShiny === true, `shiny toggle persists after export/reload: ${shinyReloaded.isShiny}`);
+assert(shinyReloaded.nature === mon0.nature, `shiny toggle preserves nature after roundtrip: ${shinyReloaded.nature}`);
+assert(shinyReloaded.ability === mon0.ability, `shiny toggle leaves ability untouched: ${shinyReloaded.ability}`);
+assert(shinyReloaded.gender === mon0.gender, `shiny toggle leaves gender untouched: ${shinyReloaded.gender}`);
+
+const unshinyPatch = applyShinyToggle(shinyReloaded, 4, false);
+freshForShiny.party[0] = { ...shinyReloaded, ...unshinyPatch };
+const unshinyReloaded = gen4Module.load(freshForShiny.toBytes()).party[0];
+assert(unshinyReloaded.isShiny === false, `shiny toggle off persists after export/reload: ${unshinyReloaded.isShiny}`);
+assert(unshinyReloaded.nature === mon0.nature, `shiny toggle off preserves nature: ${unshinyReloaded.nature}`);
 
 // Sanity-check HGSS variant detection separately (different offsets/box layout entirely).
 const hgssBytes = buildSave('HGSS');

@@ -1,6 +1,7 @@
 // Synthetic round-trip validation for the Gen2 (Crystal) save module.
 import { gen2Module } from '../src/formats/gen2/save.ts';
 import { OFFSETS_CRYSTAL } from '../src/formats/gen2/constants.ts';
+import { applyShinyToggle } from '../src/formats/shared/shinyEdit.ts';
 
 function assert(cond, msg) {
   if (!cond) throw new Error('FAIL: ' + msg);
@@ -100,6 +101,21 @@ const items = reloaded.itemPouches[0].items;
 assert(items.length === 1 && items[0].item === 5 && items[0].quantity === 3, 'items pouch roundtrip');
 const balls = reloaded.itemPouches[2].items;
 assert(balls.length === 1 && balls[0].item === 4 && balls[0].quantity === 1, 'balls pouch roundtrip');
+
+// Shiny toggle: turning it off should clear the ATK-DV shiny bit; turning it back on should set
+// DEF/SPE/Special DVs to 10 and the ATK-DV shiny bit, and both should round-trip through export/reload.
+const freshForShiny = gen2Module.load(out, 'test.sav');
+const monShinyOff = { ...freshForShiny.party[0], ...applyShinyToggle(freshForShiny.party[0], 2, false) };
+assert(monShinyOff.isShiny === false, 'shiny toggle off produces isShiny=false');
+freshForShiny.party[0] = monShinyOff;
+const offReloaded = gen2Module.load(freshForShiny.toBytes(), 'test.sav').party[0];
+assert(offReloaded.isShiny === false, `shiny toggle off persists after export/reload: ${offReloaded.isShiny}`);
+
+const monShinyOn = { ...offReloaded, ...applyShinyToggle(offReloaded, 2, true) };
+assert(monShinyOn.isShiny === true, 'shiny toggle on produces isShiny=true');
+freshForShiny.party[0] = monShinyOn;
+const onReloaded = gen2Module.load(freshForShiny.toBytes(), 'test.sav').party[0];
+assert(onReloaded.isShiny === true, `shiny toggle on persists after export/reload: ${onReloaded.isShiny}`);
 
 const out2 = reloaded.toBytes();
 let identical = out.length === out2.length;

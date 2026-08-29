@@ -14,15 +14,25 @@ can't be done via API/tooling).
 
 ## Recently Completed
 
-- Gen IV (DP/Pt/HGSS) save support: dual-partition container, LCG cipher,
-  directly-editable ability/gender, fixed-position item pockets.
-- Gen III (RSE/FRLG) save support: sector-rotation container, PID/OTID
-  XOR+shuffle encryption, version auto-detection, 6 item pockets.
-- Gen II (GS/Crystal) save support: 5 item pouches, 16 badges, derived
-  gender/shininess.
-- Created `main` branch (repo previously only had the feature branch) and
-  added `.github/workflows/deploy-pages.yml` + `vite.config.ts` base-path
-  fix for GitHub Pages.
+- Shiny editing (Gen II/III/IV; Gen I has no shininess mechanic) + sprite
+  art. `src/formats/shared/shinyEdit.ts` holds the toggle logic: Gen II
+  adjusts the Atk/Def/Spe/Special DVs that determine shininess there (can
+  nudge those stats slightly, same as in-game); Gen III/IV regenerate the
+  PID, searching for one that flips shininess vs. trainer/secret ID while
+  keeping the PID's low byte fixed (preserves Gen III's PID-derived gender)
+  and `% 25` fixed (preserves nature - Gen III ability is stored
+  independently of PID already, unaffected). Not handled: Gen III Unown's
+  letter is also PID-derived and could shift (niche, skipped).
+  `src/data/spriteUrl.ts` hotlinks official art from PokeAPI's public
+  sprite CDN by National Dex ID (box/party thumbnails + editor header;
+  hides gracefully on load failure). test:genN scripts assert the toggle
+  round-trips. Verified live in a dev server (checkbox, state, `<img src>`)
+  except actual sprite pixels — this sandbox's egress proxy resets
+  Chromium's connection to that CDN host (curl to the same URL works fine,
+  likely an HTTP/2-over-proxy sandbox quirk), not expected to affect real
+  users' browsers.
+- Created `main` branch and `.github/workflows/deploy-pages.yml` +
+  `vite.config.ts` base-path fix for GitHub Pages.
 
 ## Next Up / In Progress
 
@@ -45,11 +55,11 @@ Nothing actively in progress. Open threads, not yet started:
   National Dex ID. Gen I/III use different internal numbering in the save
   itself — see `gen1SpeciesMap.ts` / `gen3SpeciesMap.ts` (cross-checked,
   zero mismatches). Gen II/IV store National Dex ID directly.
-- **PID-derived fields are read-only in the UI**: nature (all gens),
-  gender/shininess (Gen II/III), ability (Gen III only — Gen IV stores
-  ability+gender directly and *is* editable). Editing these would mean
-  regenerating the PID, not implemented — shown disabled, never silently
-  dropped.
+- **Nature and gender stay read-only** (PID/DV-derived) — regenerating them
+  isn't implemented, shown disabled not dropped. **Shininess is now
+  editable** (Gen II-IV, see Recently Completed). Gen III ability looks
+  PID-derived but is actually stored independently in the save, so PID
+  edits don't touch it; Gen IV ability+gender are directly stored/editable.
 - **Box-stored Pokémon in Gen III/IV have no independent level field**
   (only Experience) — Level is read-only for boxed (non-party) mons there.
 - **Never zero-fill-and-forget**: every format's `toBytes()` clones the

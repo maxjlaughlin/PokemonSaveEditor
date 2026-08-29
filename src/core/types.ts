@@ -57,6 +57,7 @@ export interface EditablePokemon {
   gender: 'M' | 'F' | 'U';
   genderEditable: boolean;
   isShiny: boolean;
+  shinySupported: boolean;
   shinyEditable: boolean;
   friendship: number;
   /** Whether the Level field is independently stored and thus actually saved when edited (Gen3+

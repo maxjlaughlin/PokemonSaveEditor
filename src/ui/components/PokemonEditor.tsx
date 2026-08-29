@@ -4,6 +4,8 @@ import { MOVE_NAMES } from '../../data/moveNames';
 import { getItemNames } from '../../data/itemNames';
 import { NATURE_NAMES } from '../../data/natureNames';
 import { ABILITY_NAMES } from '../../data/abilityNames';
+import { getSpriteUrl } from '../../data/spriteUrl';
+import { applyShinyToggle } from '../../formats/shared/shinyEdit';
 
 interface Props {
   pokemon: EditablePokemon;
@@ -32,7 +34,17 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal pokemon-editor" onClick={(e) => e.stopPropagation()}>
         <header>
-          <h2>{pokemon.isEmpty ? 'Empty slot' : `${SPECIES_NAMES[pokemon.speciesId] ?? '???'}`}</h2>
+          <div className="editor-title">
+            {!pokemon.isEmpty && (
+              <img
+                className="editor-sprite"
+                src={getSpriteUrl(pokemon.speciesId, pokemon.isShiny)}
+                alt=""
+                onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+              />
+            )}
+            <h2>{pokemon.isEmpty ? 'Empty slot' : `${SPECIES_NAMES[pokemon.speciesId] ?? '???'}`}</h2>
+          </div>
           <button type="button" onClick={onClose} className="close-btn" aria-label="Close">×</button>
         </header>
 
@@ -186,11 +198,22 @@ export function PokemonEditor({ pokemon, capabilities, onChange, onClose, onDele
                   <input type="text" value={pokemon.gender === 'M' ? '♂ Male' : '♀ Female'} disabled />
                 </label>
               )}
-              {!pokemon.shinyEditable && (
-                <label title="Shininess is derived from IVs in this generation, not stored independently.">
-                  Shiny (derived)
-                  <input type="text" value={pokemon.isShiny ? 'Yes ✦' : 'No'} disabled />
-                </label>
+              {pokemon.shinySupported && (
+                pokemon.shinyEditable ? (
+                  <label className="shiny-toggle">
+                    <input
+                      type="checkbox"
+                      checked={pokemon.isShiny}
+                      onChange={(e) => update(applyShinyToggle(pokemon, capabilities.generation, e.target.checked))}
+                    />
+                    Shiny ✦
+                  </label>
+                ) : (
+                  <label title="Shininess is derived from IVs in this generation, not stored independently.">
+                    Shiny (derived)
+                    <input type="text" value={pokemon.isShiny ? 'Yes ✦' : 'No'} disabled />
+                  </label>
+                )
               )}
             </div>
 

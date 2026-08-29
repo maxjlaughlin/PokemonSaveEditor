@@ -54,7 +54,8 @@ export const emptyGen3Pokemon = (): EditablePokemon => ({
   gender: 'U',
   genderEditable: false,
   isShiny: false,
-  shinyEditable: false,
+  shinySupported: true,
+  shinyEditable: true,
   friendship: 0,
   levelEditable: true,
   pokerus: 0,
@@ -151,7 +152,8 @@ export function readGen3Pokemon(raw: Uint8Array): EditablePokemon {
     gender: genderFromPid(genderRatio, pid),
     genderEditable: false,
     isShiny: shiny,
-    shinyEditable: false,
+    shinySupported: true,
+    shinyEditable: true,
     friendship,
     levelEditable: isParty,
     pokerus,
@@ -162,8 +164,9 @@ export function readGen3Pokemon(raw: Uint8Array): EditablePokemon {
 
 /**
  * Writes a Gen3 Pokemon into a pre-sized 80 (box) or 100 (party) byte buffer. PID/secret ID are
- * preserved from the original Pokemon (nature/gender/shiny/ability all derive from PID and are not
- * independently editable in this editor - a fresh PID is generated only for brand-new additions).
+ * preserved from the original Pokemon (nature and gender derive from PID and aren't independently
+ * editable in this editor; shininess is editable, but only via regenerating the PID - see
+ * `shinyEdit.ts` - a fresh PID is otherwise only generated for brand-new additions).
  */
 export function writeGen3Pokemon(pokemon: EditablePokemon, raw: Uint8Array) {
   raw.fill(0);
