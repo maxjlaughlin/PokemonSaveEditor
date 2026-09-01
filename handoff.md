@@ -2,87 +2,76 @@
 
 A browser-based, client-side-only Pokémon save editor (React + TypeScript +
 Vite). Generations I–IV (Red/Blue/Yellow through Diamond/Pearl/Platinum/
-HeartGold/SoulSilver) are fully implemented and round-trip tested: import a
-real save, edit trainer/party/boxes/items, export a valid save back out,
-with all checksums/encryption recomputed correctly. Each generation module
-has an automated round-trip test and was verified against a real headless
-browser session (import → edit → export). `main` and the feature branch
-`claude/pokemon-save-editor-m239xy` are in sync as of the last push. A
-GitHub Actions workflow deploys `main` to GitHub Pages, pending the repo
-owner enabling Settings → Pages → Source → GitHub Actions (one-time,
-can't be done via API/tooling).
+HeartGold/SoulSilver) are fully implemented and round-trip tested. Gen III/IV
+also support event injection (Mystery Gift Pokémon + ticket/key-item location
+unlocks) via a new Events tab. The feature branch
+`claude/pokemon-save-editor-m239xy` is currently ahead of `main` (this
+session's work isn't merged/deployed yet). A GitHub Actions workflow deploys
+`main` to GitHub Pages, pending the repo owner enabling Settings → Pages →
+Source → GitHub Actions.
 
 ## Recently Completed
 
-- Shiny editing (Gen II/III/IV; Gen I has no shininess mechanic) + sprite
-  art. `src/formats/shared/shinyEdit.ts` holds the toggle logic: Gen II
-  adjusts the Atk/Def/Spe/Special DVs that determine shininess there (can
-  nudge those stats slightly, same as in-game); Gen III/IV regenerate the
-  PID, searching for one that flips shininess vs. trainer/secret ID while
-  keeping the PID's low byte fixed (preserves Gen III's PID-derived gender)
-  and `% 25` fixed (preserves nature - Gen III ability is stored
-  independently of PID already, unaffected). Not handled: Gen III Unown's
-  letter is also PID-derived and could shift (niche, skipped).
-  `src/data/spriteUrl.ts` hotlinks official art from PokeAPI's public
-  sprite CDN by National Dex ID (box/party thumbnails + editor header;
-  hides gracefully on load failure). test:genN scripts assert the toggle
-  round-trips. Verified live in a dev server (checkbox, state, `<img src>`)
-  except actual sprite pixels — this sandbox's egress proxy resets
-  Chromium's connection to that CDN host (curl to the same URL works fine,
-  likely an HTTP/2-over-proxy sandbox quirk), not expected to affect real
-  users' browsers.
-- Created `main` branch and `.github/workflows/deploy-pages.yml` +
-  `vite.config.ts` base-path fix for GitHub Pages.
+- **Event injection for Gen III/IV**: `src/core/events.ts` (types),
+  `src/formats/shared/applyEvent.ts`/`eventPid.ts`/`expCurve.ts` (build a
+  correctly-encrypted, level-consistent, nature/shiny-locked-as-documented
+  Pokemon), `src/data/eventsGen3.ts`/`eventsGen4.ts` (15+21 curated events,
+  each verified against real distributed `.pk3`/`.wc4` files and public refs,
+  sources cited per-entry), `src/ui/tabs/EventsTab.tsx`. Ticket/key-item
+  events only grant the item and let the real game generate the wild
+  encounter (more authentic than fabricating a moveset). Item/move/nature
+  names are resolved by exact-string lookup against existing name tables at
+  load time (`eventHelpers.ts`) instead of hardcoded IDs - this caught real
+  transcription mistakes during development (see Gotchas). Also fixed a
+  pre-existing bug: Gen4's fateful-encounter bit was always zeroed on write.
+  `npm run test:events` validates all 84 catalog×version combinations apply
+  with zero warnings and round-trip. Known gaps: Azure Flute excluded (no
+  evidence it was ever functional/distributed); ball-caught-in and met-
+  location aren't modeled at all (pre-existing editor limitation).
+- Shiny editing (Gen II/III/IV) + sprite art from a prior session.
+- Created `main` branch + `.github/workflows/deploy-pages.yml`.
 
 ## Next Up / In Progress
 
-Nothing actively in progress. Open threads, not yet started:
-- Gen V (Black/White/Black2/White2) support — not started.
-- Event injection (setting in-game event flags, not just item drops) —
-  explicitly deferred until more generations were solid; still deferred.
-- Gen VI+ (3DS/Switch) — intentionally out of scope (console-specific
-  encryption, high risk of save corruption); see `README.md` status table.
-- Minor known gap: Gen IV's item-pocket dropdown in
-  `src/ui/tabs/ItemsTab.tsx` isn't filtered to each pocket's valid item
-  whitelist, so picking an invalid item for a pocket silently no-ops on
-  export instead of being flagged in the UI.
-- User needs to flip Settings → Pages → Source → GitHub Actions on GitHub
-  before the Pages deploy will succeed (repo owner action, not mine).
+- Merge `claude/pokemon-save-editor-m239xy` into `main` so this session's
+  work actually deploys; user still needs to flip Settings → Pages → Source
+  → GitHub Actions (repo owner action, not mine).
+- Gen V support — not started. Gen VI+ intentionally out of scope.
+- Event catalog could grow — `eventsGen3.ts`/`eventsGen4.ts` follow a clear
+  per-entry pattern, low-risk to extend once new data is verified.
+- Known gap: Gen IV's item-pocket dropdown (`ItemsTab.tsx`) isn't filtered to
+  each pocket's valid whitelist.
 
 ## Key Decisions & Gotchas
 
 - **Species ID canonicalization**: `EditablePokemon.speciesId` is always
-  National Dex ID. Gen I/III use different internal numbering in the save
-  itself — see `gen1SpeciesMap.ts` / `gen3SpeciesMap.ts` (cross-checked,
-  zero mismatches). Gen II/IV store National Dex ID directly.
-- **Nature and gender stay read-only** (PID/DV-derived) — regenerating them
-  isn't implemented, shown disabled not dropped. **Shininess is now
-  editable** (Gen II-IV, see Recently Completed). Gen III ability looks
-  PID-derived but is actually stored independently in the save, so PID
-  edits don't touch it; Gen IV ability+gender are directly stored/editable.
-- **Box-stored Pokémon in Gen III/IV have no independent level field**
-  (only Experience) — Level is read-only for boxed (non-party) mons there.
-- **Never zero-fill-and-forget**: every format's `toBytes()` clones the
-  original bytes and patches only known offsets, so unmodeled fields
-  (contest stats, ribbons, etc.) survive edits to *other* Pokémon.
-- **Detection is structural, not size-based**: Gen I/II international
-  saves are both exactly 0x8000 bytes, so `detect()` checks list-header
-  validity before trusting a checksum — avoids cross-gen false positives.
-- **Round-trip tests use synthetic saves** (no copyrighted files in repo)
-  with hand-built valid headers/checksums — see `scripts/genN-roundtrip-test.mjs`
-  for the pattern when adding Gen V.
-- All Gen1-4 offsets/algorithms were cross-checked against independent
-  public references before implementation, not worked from memory alone.
+  National Dex ID (see `gen1SpeciesMap.ts`/`gen3SpeciesMap.ts`).
+- Nature/gender stay read-only (PID/DV-derived) except Gen IV ability+gender
+  (directly stored) and shininess (Gen II-IV, editable - `shinyEdit.ts`).
+- Box-stored Pokémon in Gen III/IV have no independent level field.
+- **Never zero-fill-and-forget**: `toBytes()` clones original bytes and
+  patches only known offsets.
+- Detection is structural, not size-based. Round-trip tests use synthetic
+  saves only (no copyrighted files in repo).
+- **Never work from memory for save-affecting facts.** Bit twice this
+  session even with that rule in mind: hand-derived nature IDs were wrong
+  (wrong index table from memory), and one item name used a straight
+  apostrophe where the real table has a curly one. Both caught by resolving
+  names against actual data tables at load time instead of hardcoding IDs -
+  reuse that pattern (`eventHelpers.ts`) for future ID-bearing data.
+- **SaveFile.versionTag** (new): short internal version code ('RS'|'E'|'FRLG'
+  gen3, 'DP'|'Pt'|'HGSS' gen4) for event-catalog filtering; undefined gen1/2.
 
 ## Relevant Files
 
-- `README.md` — per-generation status table, known limitations, commands.
-- `src/core/types.ts` — shared `SaveFile`/`EditablePokemon`/
-  `GenerationCapabilities` contract; start here before touching a generation.
-- `src/core/registry.ts` — format auto-detection; register new gens here.
-- `src/formats/genN/save.ts` — per-generation save container entry point.
-- `src/formats/shared/` — cross-generation logic (list packing, stat
-  formulas, item lists, BCD money).
-- `src/ui/tabs/ItemsTab.tsx` — has the known Gen IV item-whitelist gap.
+- `README.md` — status table, commands. `src/core/types.ts` — shared
+  contract. `src/core/events.ts` — event type contract.
+  `src/core/registry.ts` — format detection.
+- `src/formats/genN/save.ts` — per-gen save entry point.
+  `src/formats/shared/` — cross-gen logic incl. `applyEvent.ts`/`eventPid.ts`/
+  `expCurve.ts`/`shinyEdit.ts`.
+- `src/data/eventsGen3.ts`/`eventsGen4.ts`/`eventHelpers.ts` — event catalogs.
+  `src/ui/tabs/EventsTab.tsx` — event picker/injector UI.
+  `src/ui/tabs/ItemsTab.tsx` — has the known Gen IV whitelist gap.
 - `.github/workflows/deploy-pages.yml` — Pages deploy, pending repo setting.
-- `scripts/genN-roundtrip-test.mjs` — round-trip test, run via `npm run test:genN`.
+  `scripts/genN-roundtrip-test.mjs`/`events-roundtrip-test.mjs` — tests.

@@ -1,4 +1,200 @@
 import type { EventDefinition } from '../core/events';
+import { moves } from './eventHelpers';
 
-// Populated from verified public references (Bulbapedia/Serebii) - see each entry's `source`.
-export const EVENTS_GEN3: EventDefinition[] = [];
+// Verified against real distributed .pk3 files (github.com/projectpokemon/EventsGallery) parsed
+// with byte offsets from PKHeX's PK3.cs/G3PKM.cs, and against Bulbapedia for location mechanics
+// (flagged per-entry below). Not exhaustive - see README/handoff for what's covered and why.
+
+const TICKET_EVENTS: EventDefinition[] = [
+  {
+    id: 'g3-eon-ticket-latias',
+    generation: 3,
+    name: 'Eon Ticket → Southern Island (Latias)',
+    versions: ['RS', 'E'],
+    summary: "Adds the Eon Ticket, which lets the S.S. Tidal's sailor take you to Southern Island to encounter a wild Latias (Lv.50, holding a Soul Dew).",
+    howToPlay: "Talk to the sailor at the Slateport or Lilycove dock once you have the ticket. In Ruby, this is the only way to get Latias (it doesn't roam that version); in Emerald either Eon Pokemon can appear here depending on which one you didn't pick as your roamer.",
+    items: [{ itemName: 'Eon Ticket' }],
+    source: 'Bulbapedia (Southern Island / Eon Ticket); item added directly, wild encounter left to the game itself so its moveset/IVs generate normally.',
+  },
+  {
+    id: 'g3-eon-ticket-latios',
+    generation: 3,
+    name: 'Eon Ticket → Southern Island (Latios)',
+    versions: ['RS', 'E'],
+    summary: "Adds the Eon Ticket, which lets the S.S. Tidal's sailor take you to Southern Island to encounter a wild Latios (Lv.50, holding a Soul Dew).",
+    howToPlay: "Talk to the sailor at the Slateport or Lilycove dock once you have the ticket. In Sapphire, this is the only way to get Latios (it doesn't roam that version); in Emerald either Eon Pokemon can appear here depending on which one you didn't pick as your roamer.",
+    items: [{ itemName: 'Eon Ticket' }],
+    source: 'Bulbapedia (Southern Island / Eon Ticket); item added directly, wild encounter left to the game itself.',
+  },
+  {
+    id: 'g3-mystic-ticket-hooh',
+    generation: 3,
+    name: 'Mystic Ticket → Navel Rock (Ho-Oh)',
+    versions: ['FRLG'],
+    summary: 'Adds the Mystic Ticket, which lets a sailor in Vermilion City take you to Navel Rock to encounter a wild Ho-Oh (Lv.70).',
+    howToPlay: 'Talk to the sailor at the Vermilion City dock once you have the ticket. If it flees or faints, leaving and re-entering the area lets you try again.',
+    items: [{ itemName: 'MysticTicket' }],
+    source: 'Bulbapedia (Navel Rock / Mystic Ticket).',
+  },
+  {
+    id: 'g3-mystic-ticket-lugia',
+    generation: 3,
+    name: 'Mystic Ticket → Navel Rock (Lugia)',
+    versions: ['FRLG'],
+    summary: 'Adds the Mystic Ticket, which lets a sailor in Vermilion City take you to Navel Rock to encounter a wild Lugia (Lv.70).',
+    howToPlay: 'Talk to the sailor at the Vermilion City dock once you have the ticket. If it flees or faints, leaving and re-entering the area lets you try again.',
+    items: [{ itemName: 'MysticTicket' }],
+    source: 'Bulbapedia (Navel Rock / Mystic Ticket).',
+  },
+  {
+    id: 'g3-aurora-ticket-deoxys',
+    generation: 3,
+    name: 'Aurora Ticket → Birth Island (Deoxys)',
+    versions: ['FRLG', 'E'],
+    summary: 'Adds the Aurora Ticket, which lets a sailor take you to Birth Island to encounter a wild Deoxys (Lv.30).',
+    howToPlay: "Talk to the sailor at the dock once you have the ticket. Deoxys' form (Attack/Defense/Speed/Normal) is determined automatically by which game is in the cartridge slot, not by anything stored on the Pokemon itself, so no form needs to be set here.",
+    items: [{ itemName: 'AuroraTicket' }],
+    source: 'Bulbapedia (Birth Island / Aurora Ticket).',
+  },
+  {
+    id: 'g3-old-sea-map-mew',
+    generation: 3,
+    name: 'Old Sea Map → Faraway Island (Mew)',
+    versions: ['E'],
+    summary: 'Adds the Old Sea Map, which lets a sailor take you to Faraway Island to encounter a wild Mew (Lv.30) - the only Mew that can legitimately be Shiny.',
+    howToPlay: "Talk to the sailor at the Lilycove or Slateport dock once you have the map. Historical note: the Old Sea Map itself was only ever distributed in Japan/Taiwan (Pokémon Festa/PokéPark events, 2005-2006) - it was never given out in English releases, so granting it here is editor-only functionality with no real English-release precedent.",
+    items: [{ itemName: 'Old Sea Map' }],
+    source: 'Bulbapedia (Faraway Island / Old Sea Map, incl. distribution history and the Shiny-Mew note).',
+  },
+];
+
+const DISTRIBUTION_EVENTS: EventDefinition[] = [
+  {
+    id: 'g3-wishmkr-jirachi',
+    generation: 3,
+    name: 'WISHMKR Jirachi (Pokémon Colosseum Bonus Disc)',
+    versions: ['RS'],
+    summary: 'The Jirachi given directly by the US Pokémon Colosseum Bonus Disc.',
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 385, level: 5, growthRate: 'slow',
+      moves: moves('Wish', 'Confusion', 'Rest', ''),
+      otName: 'WISHMKR', otId: 20043,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery) against PK3.cs offsets.',
+  },
+  {
+    id: 'g3-channel-jirachi',
+    generation: 3,
+    name: 'CHANNEL Jirachi (Pokémon Channel, UK)',
+    versions: ['RS'],
+    summary: 'The Jirachi delivered via the UK-exclusive Pokémon Channel GameCube disc.',
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 385, level: 5, growthRate: 'slow',
+      moves: moves('Wish', 'Confusion', 'Rest', ''),
+      otName: 'CHANNEL', otId: 40122,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery). SID varies per real recipient; omitted here (defaults to 0) since it has no gameplay effect for a freshly-created Pokemon.',
+  },
+  {
+    id: 'g3-mystry-mew',
+    generation: 3,
+    name: 'MYSTRY Mew (Toys "R" Us, Sept 2006)',
+    versions: ['RS', 'E', 'FRLG'],
+    summary: 'The Mew distributed at US Toys "R" Us stores, September 30 2006.',
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 151, level: 10, growthRate: 'medium-slow',
+      moves: moves('Pound', 'Transform', '', ''),
+      otName: 'MYSTRY', otId: 6930,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery).',
+  },
+  {
+    id: 'g3-aura-mew',
+    generation: 3,
+    name: 'Aura Mew (UK Toys "R" Us Summer Day Camp, 2007)',
+    versions: ['RS', 'E', 'FRLG'],
+    summary: 'The Mew distributed at UK Toys "R" Us Summer Day Camp events, Aug 2-26 2007 - the last Gen III event distribution.',
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 151, level: 10, growthRate: 'medium-slow',
+      moves: moves('Pound', 'Transform', '', ''),
+      otName: 'Aura', otId: 20078,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery).',
+  },
+  {
+    id: 'g3-doel-deoxys',
+    generation: 3,
+    name: 'DOEL Deoxys (Netherlands, Pokémon Fan Days 2006)',
+    versions: ['RS', 'E', 'FRLG'],
+    summary: 'The Deoxys distributed at Dutch Pokémon Fan Days events in 2006.',
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 386, level: 70, growthRate: 'slow',
+      moves: moves('Cosmic Power', 'Recover', 'Psycho Boost', 'Hyper Beam'),
+      otName: 'DOEL', otId: 28606,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery).',
+  },
+  {
+    id: 'g3-spacec-deoxys',
+    generation: 3,
+    name: 'SPACE C Deoxys (Space Center Houston, 2006)',
+    versions: ['RS', 'E', 'FRLG'],
+    summary: "The Deoxys distributed at Space Center Houston for Pokémon's 10th Anniversary, March-May 2006.",
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 386, level: 70, growthRate: 'slow',
+      moves: moves('Cosmic Power', 'Recover', 'Psycho Boost', 'Hyper Beam'),
+      otName: 'SPACE C', otId: 10,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery).',
+  },
+  {
+    id: 'g3-10aniv-celebi',
+    generation: 3,
+    name: '10 ANIV Celebi (Journey Across America, 2006)',
+    versions: ['RS', 'E', 'FRLG'],
+    summary: "The Celebi distributed on the US 10th Anniversary 'Journey Across America' tour, 2006.",
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 251, level: 70, growthRate: 'medium-slow',
+      moves: moves('Ancient Power', 'Future Sight', 'Baton Pass', 'Perish Song'),
+      otName: '10 ANIV', otId: 10,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery).',
+  },
+  {
+    id: 'g3-ageto-celebi',
+    generation: 3,
+    name: 'Ageto Celebi (JP Pokémon Colosseum Bonus Disc)',
+    versions: ['RS', 'E', 'FRLG'],
+    summary: 'The Celebi given by the Japanese Pokémon Colosseum Bonus Disc after purifying all 48 Shadow Pokémon.',
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 251, level: 10, growthRate: 'medium-slow',
+      moves: moves('Confusion', 'Recover', 'Heal Bell', 'Safeguard'),
+      otName: 'AGETO', otId: 31121,
+    }],
+    source: "Parsed real distributed .pk3 (EventsGallery). Real OT name is the Japanese katakana アゲト; romanized to 'AGETO' here for encoding safety.",
+  },
+  {
+    id: 'g3-rocks-metang',
+    generation: 3,
+    name: 'ROCKS Metang (Pokémon Rocks America Tour, 2004)',
+    versions: ['RS', 'E', 'FRLG'],
+    summary: 'The Metang distributed on the 2004 Pokémon Rocks America tour.',
+    howToPlay: 'Received immediately - open the Party or Box tab to see it.',
+    pokemon: [{
+      speciesId: 376, level: 30, growthRate: 'slow',
+      moves: moves('Take Down', 'Confusion', 'Metal Claw', 'Refresh'),
+      otName: 'ROCKS', otId: 2005,
+    }],
+    source: 'Parsed real distributed .pk3 (EventsGallery); this tour distributed Metang, not Deoxys as sometimes misremembered.',
+  },
+];
+
+export const EVENTS_GEN3: EventDefinition[] = [...TICKET_EVENTS, ...DISTRIBUTION_EVENTS];

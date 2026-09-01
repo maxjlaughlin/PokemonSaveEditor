@@ -14,7 +14,10 @@ export interface EventPokemonSpec {
   nature?: number; // locked nature (PID % 25), when the distribution fixes one; otherwise random
   gender?: 'M' | 'F' | 'U'; // Gen4 only (directly stored there); ignored for Gen3 (PID/ratio-derived)
   ivs?: Partial<{ hp: number; atk: number; def: number; spa: number; spd: number; spe: number }>; // unset = 31 (most events are documented as perfect or near-perfect)
-  shiny?: boolean; // default false: virtually all official distributions are shiny-locked off
+  // Tri-state: true = distribution is fixed/guaranteed shiny; false = distribution is explicitly
+  // shiny-locked off (Gen4's documented PID=1 "anti-shiny" gifts); undefined = a normal wild
+  // encounter or an unlocked gift, where shininess is genuinely random like any other Pokemon.
+  shiny?: boolean;
   friendship?: number; // default 70 (standard base friendship)
   fatefulEncounter?: boolean; // Gen4 only; default true for event Pokemon
 }

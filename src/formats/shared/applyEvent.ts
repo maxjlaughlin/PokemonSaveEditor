@@ -6,6 +6,7 @@ import { GEN3_BASE_STATS } from '../../data/baseStatsGen3';
 import { GEN4_BASE_STATS } from '../../data/baseStatsGen4';
 import { getItemNames } from '../../data/itemNames';
 import { GEN4_KEY_DP, GEN4_KEY_HGSS, GEN4_KEY_PT } from '../../data/itemPocketsGen4';
+import { SPECIES_NAMES } from '../../data/speciesNames';
 
 export interface ApplyEventResult {
   addedPokemon: string[];
@@ -28,7 +29,8 @@ function buildEventPokemon(save: SaveFile, spec: EventPokemonSpec): EditablePoke
   const empty = save.createEmptyPokemon();
   const tid = spec.otId & 0xffff;
   const sid = spec.otSid ?? 0;
-  const pid = generateEventPid(tid, sid, { shiny: spec.shiny ?? false, nature: spec.nature });
+  const pid = generateEventPid(tid, sid, { shiny: spec.shiny, nature: spec.nature });
+  const actualShiny = ((tid ^ sid ^ (pid & 0xffff) ^ (pid >>> 16)) & 0xffff) < 8;
 
   const base = save.generation === 4
     ? GEN4_BASE_STATS[spec.speciesId] ?? GEN4_BASE_STATS[0]
@@ -62,7 +64,7 @@ function buildEventPokemon(save: SaveFile, spec: EventPokemonSpec): EditablePoke
     nature: pid % 25,
     ability: ability1,
     gender: spec.gender ?? empty.gender,
-    isShiny: spec.shiny ?? false,
+    isShiny: actualShiny,
     friendship: spec.friendship ?? 70,
     pokerus: 0,
     metInfo,
@@ -128,7 +130,8 @@ export function applyEvent(save: SaveFile, event: EventDefinition): ApplyEventRe
     }
     const mon = buildEventPokemon(save, spec);
     place(mon);
-    result.addedPokemon.push(spec.nickname || mon.nickname || `Pokémon #${spec.speciesId}`);
+    const speciesName = SPECIES_NAMES[spec.speciesId] ?? `#${spec.speciesId}`;
+    result.addedPokemon.push(spec.nickname ? `${speciesName} ("${spec.nickname}")` : speciesName);
   }
 
   return result;

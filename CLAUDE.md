@@ -32,6 +32,7 @@ npm run dev        # dev server (localhost:5173)
 npm run build      # type-check (tsc -b) + production build
 npm run lint        # oxlint
 npm run test:gen1   # ...gen2, gen3, gen4 — synthetic round-trip test per generation
+npm run test:events # round-trip test for Gen3/4 event injection
 ```
 
 Always run the relevant `test:genN` script(s) after touching a generation's
@@ -78,12 +79,20 @@ type-checks and builds in one step).
   bug.
 - No copyrighted save files or ROM data in the repo. Round-trip tests
   construct synthetic saves with hand-built valid headers/checksums.
+- Event data (`src/data/eventsGen3.ts`/`eventsGen4.ts`) never hardcodes a
+  numeric move/item/nature ID — resolve it by exact name against the
+  existing name tables at load time (see `eventHelpers.ts`). This isn't
+  stylistic: a hand-transcribed ID silently pointing at the wrong move/item/
+  nature is exactly the kind of save-affecting mistake this file's other
+  rules exist to prevent, and it already happened once during development
+  before this convention was adopted.
 
 ## Out of scope (for now)
 
 Gen V (Black/White/B2W2) is unimplemented. Gen VI+ (3DS/Switch) is
 intentionally not planned — console-specific encryption raises the risk of
 producing a save-corrupting implementation too high to be worth it here.
-Event injection (setting in-game event flags) is deferred until more
-generations are solid. See `handoff.md` for current status and
-`README.md` for the full per-generation support table.
+Gen III/IV event injection (Mystery Gift Pokémon + ticket-triggered
+encounters) is implemented for a curated, verified set of events — see
+`handoff.md` for current status and `README.md` for the full per-generation
+support table.

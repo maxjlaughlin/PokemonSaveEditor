@@ -6,11 +6,12 @@
 // non-shiny match is >99.98% likely on the first draw, and a specific nature (if the distribution
 // locks one) is a 1-in-25 draw on top of that - trivially fast either way.
 export function generateEventPid(tid: number, sid: number, opts: { shiny?: boolean; nature?: number } = {}): number {
-  const wantShiny = opts.shiny ?? false;
   for (let attempt = 0; attempt < 1_000_000; attempt++) {
     const pid = (Math.random() * 0x100000000) >>> 0;
-    const isShiny = ((tid ^ sid ^ (pid & 0xffff) ^ (pid >>> 16)) & 0xffff) < 8;
-    if (isShiny !== wantShiny) continue;
+    if (opts.shiny !== undefined) {
+      const isShiny = ((tid ^ sid ^ (pid & 0xffff) ^ (pid >>> 16)) & 0xffff) < 8;
+      if (isShiny !== opts.shiny) continue;
+    }
     if (opts.nature !== undefined && pid % 25 !== opts.nature) continue;
     return pid;
   }

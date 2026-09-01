@@ -146,4 +146,80 @@ function crc16ccitt(data) {
   console.log('Gen4 event injection round-trip OK.\n');
 }
 
+// ---- Full catalog validation: every real event applies cleanly (no warnings) and round-trips ----
+{
+  const { EVENTS_GEN3 } = await import('../src/data/eventsGen3.ts');
+  const { EVENTS_GEN4 } = await import('../src/data/eventsGen4.ts');
+
+  function buildGen3Save(version) {
+    const SIZE_SECTOR = 0x1000;
+    const bytes = new Uint8Array(0x20000);
+    for (let i = 0; i < 14; i++) {
+      const off = i * SIZE_SECTOR;
+      bytes[off + 0xff4] = i & 0xff;
+      bytes[off + 0xff5] = (i >> 8) & 0xff;
+      bytes[off + 0xffc] = 1;
+    }
+    if (version === 'FRLG') {
+      bytes[0xac] = 1; // FRLG signature
+    } else if (version === 'E') {
+      bytes[0xac] = 0x78; bytes[0xad] = 0x56; bytes[0xae] = 0x34; bytes[0xaf] = 0x12;
+      bytes[0x890] = 1; // any nonzero byte in this range distinguishes E from RS
+    }
+    // RS: leave all-zero, which detectVersion reads as RS.
+    return bytes;
+  }
+
+  let totalEvents = 0;
+  for (const version of ['RS', 'E', 'FRLG']) {
+    const applicable = EVENTS_GEN3.filter((e) => e.versions.includes(version));
+    for (const event of applicable) {
+      totalEvents++;
+      const save = gen3Module.load(buildGen3Save(version));
+      const result = applyEvent(save, event);
+      assert(result.warnings.length === 0, `gen3 ${version} "${event.id}" applies with no warnings: ${JSON.stringify(result.warnings)}`);
+      const out = save.toBytes();
+      const reloaded = gen3Module.load(out);
+      if (event.pokemon && event.pokemon.length > 0) {
+        assert(!reloaded.party[0].isEmpty, `gen3 ${version} "${event.id}" pokemon survives round-trip`);
+      }
+    }
+  }
+  console.log(`Validated ${totalEvents} Gen3 catalog event applications across RS/E/FRLG.\n`);
+
+  function buildGen4Save(version) {
+    function writeChecksum(block, size, footerSize) {
+      const chk = crc16ccitt(block.subarray(0, size - footerSize));
+      block[size - 2] = chk & 0xff;
+      block[size - 1] = (chk >> 8) & 0xff;
+    }
+    const o = GEN4_OFFSETS[version];
+    const bytes = new Uint8Array(2 * PARTITION_SIZE);
+    const general = new Uint8Array(o.generalSize);
+    writeChecksum(general, o.generalSize, o.footerSize);
+    bytes.set(general, 0);
+    const storage = new Uint8Array(o.storageSize);
+    writeChecksum(storage, o.storageSize, o.footerSize);
+    bytes.set(storage, o.storageStart);
+    return bytes;
+  }
+
+  totalEvents = 0;
+  for (const version of ['DP', 'Pt', 'HGSS']) {
+    const applicable = EVENTS_GEN4.filter((e) => e.versions.includes(version));
+    for (const event of applicable) {
+      totalEvents++;
+      const save = gen4Module.load(buildGen4Save(version));
+      const result = applyEvent(save, event);
+      assert(result.warnings.length === 0, `gen4 ${version} "${event.id}" applies with no warnings: ${JSON.stringify(result.warnings)}`);
+      const out = save.toBytes();
+      const reloaded = gen4Module.load(out);
+      if (event.pokemon && event.pokemon.length > 0) {
+        assert(!reloaded.party[0].isEmpty, `gen4 ${version} "${event.id}" pokemon survives round-trip`);
+      }
+    }
+  }
+  console.log(`Validated ${totalEvents} Gen4 catalog event applications across DP/Pt/HGSS.\n`);
+}
+
 console.log('All event-injection round-trip checks passed.');

@@ -9,23 +9,37 @@ file is read and written locally in the browser and is never uploaded anywhere.
 | --- | --- | --- |
 | I | Red / Blue / Yellow | ✅ Implemented (trainer info, party, boxes, items) |
 | II | Gold / Silver / Crystal | ✅ Implemented (trainer info, party, boxes, 5 item pouches, held items) |
-| III | Ruby / Sapphire / Emerald / FireRed / LeafGreen | ✅ Implemented (trainer info, party, boxes, 6 item pockets, held items, nature/ability/gender/shiny display) |
-| IV | Diamond / Pearl / Platinum / HeartGold / SoulSilver | ✅ Implemented (trainer info, party, boxes, 8 item pockets, held items, directly-editable ability/gender, nature/shiny display) |
+| III | Ruby / Sapphire / Emerald / FireRed / LeafGreen | ✅ Implemented (trainer info, party, boxes, 6 item pockets, held items, editable shiny, nature/ability/gender display, event injection) |
+| IV | Diamond / Pearl / Platinum / HeartGold / SoulSilver | ✅ Implemented (trainer info, party, boxes, 8 item pockets, held items, directly-editable ability/gender, editable shiny, nature display, event injection) |
 | V | Black / White / Black 2 / White 2 | Planned |
 | VI+ | 3DS / Switch titles | Not currently planned — these use console-specific encryption that makes them significantly higher risk to get wrong |
 
-Event injection (setting the flags needed to trigger in-game events, not just
-handing over an item) is planned as a follow-up once core editing is solid
-across more generations.
+### Event injection (Gen III/IV)
 
-Some fields are derived from a Pokémon's Personality Value (PID) rather than
-stored independently — Gen II gender/shininess, Gen III nature/ability/
-gender/shininess, Gen IV nature/shininess (Gen IV *does* store ability and
+The Events tab lets you inject real, historically-distributed in-game events
+into a Gen III or Gen IV save: Mystery Gift-style Pokémon (movie/GameStop
+distributions, Wonder Cards, e-Reader/bonus-disc gifts) with their documented
+species/level/moveset/OT, and ticket/key-item-triggered location unlocks
+(Eon Ticket → Southern Island, Member Card → Darkrai, etc.), which add the
+real unlock item and leave the actual wild encounter to the game itself so
+its moveset/IVs generate normally. Every entry's stats were verified against
+real distributed save files and public references rather than worked from
+memory — see `src/data/eventsGen3.ts` / `eventsGen4.ts` for sources, and
+each event's in-app detail panel cites where its data came from. This is a
+curated, well-documented subset, not literally every event ever distributed;
+a few real items (Azure Flute) are deliberately excluded because research
+turned up no evidence they were ever actually functional/distributed.
+
+Some fields are derived from a Pokémon's Personality Value (PID, Gen III/IV)
+or specific IVs (Gen II) rather than stored independently — Gen II gender,
+Gen III nature/ability/gender, Gen IV nature (Gen IV *does* store ability and
 gender directly, so those are editable). Derived fields are shown read-only
-rather than edited directly, since "editing" them really means regenerating
-the PID, which this editor doesn't do yet. Gen III and Gen IV box-stored
-Pokémon also don't store level directly (only Experience), so Level is shown
-as read-only for boxed (non-party) Pokémon in those generations.
+rather than edited directly. Shininess is the one derived field this editor
+*can* edit (Gen II–IV) by regenerating the underlying PID/IVs while
+preserving nature/gender — see the shiny checkbox in the Pokémon editor.
+Gen III and Gen IV box-stored Pokémon also don't store level directly (only
+Experience), so Level is shown as read-only for boxed (non-party) Pokémon in
+those generations.
 
 Gen IV item pockets are fixed-position (each pocket only accepts items from
 a specific category, e.g. Berries can't go in the Key Items pocket) — the
@@ -43,6 +57,7 @@ npm run test:gen1 # synthetic round-trip test for the Gen1 save format
 npm run test:gen2 # synthetic round-trip test for the Gen2 save format
 npm run test:gen3 # synthetic round-trip test for the Gen3 save format
 npm run test:gen4 # synthetic round-trip test for the Gen4 save format
+npm run test:events # round-trip test for event injection (PID gen, Exp curve, item grants)
 ```
 
 ## Architecture
