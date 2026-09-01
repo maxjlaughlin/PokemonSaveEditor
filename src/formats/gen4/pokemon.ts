@@ -89,6 +89,7 @@ export function readGen4Pokemon(raw: Uint8Array): EditablePokemon {
   const cOff = 0x48 - 8;
   const nickname = decodeGen4Text(logical.subarray(cOff, cOff + 20));
   const genderBits = (logical[0x40 - 8] >> 1) & 3;
+  const fatefulEncounter = (logical[0x40 - 8] & 1) !== 0;
 
   const dOff = 0x68 - 8;
   const otName = decodeGen4Text(logical.subarray(dOff, dOff + 16));
@@ -142,6 +143,7 @@ export function readGen4Pokemon(raw: Uint8Array): EditablePokemon {
     pokerus,
     metInfo: packMetInfo(sid, pokerus, otGender, metLevel),
     pid,
+    fatefulEncounter,
   };
 }
 
@@ -188,7 +190,7 @@ export function writeGen4Pokemon(pokemon: EditablePokemon, raw: Uint8Array) {
 
   const cOff = 0x48 - 8;
   logical.set(encodeGen4Text(pokemon.nickname || defaultNickname(pokemon.speciesId), 10), cOff);
-  logical[0x40 - 8] = (logical[0x40 - 8] & ~0x06) | ((GENDER_CODE[pokemon.gender] & 3) << 1);
+  logical[0x40 - 8] = (logical[0x40 - 8] & ~0x07) | ((GENDER_CODE[pokemon.gender] & 3) << 1) | (pokemon.fatefulEncounter ? 1 : 0);
 
   const dOff = 0x68 - 8;
   logical.set(encodeGen4Text(pokemon.otName, 7), dOff);

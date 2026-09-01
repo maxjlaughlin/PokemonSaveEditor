@@ -107,6 +107,7 @@ class Gen4SaveFile implements SaveFile {
   generation = 4 as const;
   capabilities = CAPABILITIES;
   gameTitle: string;
+  versionTag: Gen4Version;
   trainer;
   party;
   boxes: EditableBox[];
@@ -121,6 +122,7 @@ class Gen4SaveFile implements SaveFile {
   constructor(bytes: Uint8Array, version: Gen4Version, generalPartition: number, storagePartition: number) {
     this.originalBytes = bytes.slice();
     this.version = version;
+    this.versionTag = version;
     const o = this.o = OFFSETS[version];
     this.gameTitle = version === 'DP' ? 'Pokémon Diamond/Pearl' : version === 'Pt' ? 'Pokémon Platinum' : 'Pokémon HeartGold/SoulSilver';
 

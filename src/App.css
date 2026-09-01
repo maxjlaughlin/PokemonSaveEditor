@@ -405,3 +405,62 @@ button.danger {
 .items-table input {
   width: 70px;
 }
+
+/* ---------- Events tab ---------- */
+
+.events-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event-item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: inherit;
+}
+
+.event-item.active {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.event-detail {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.event-detail h3 {
+  margin-top: 0;
+}
+
+.event-detail ul {
+  margin: 4px 0 12px;
+  padding-left: 20px;
+}
+
+.event-result {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: rgba(60, 180, 100, 0.12);
+}
+
+.event-warnings {
+  color: #b35c00;
+}

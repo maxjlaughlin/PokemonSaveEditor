@@ -69,6 +69,10 @@ export interface EditablePokemon {
   pokerus: number;
   metInfo: number;
   pid: number;
+  /** Gen4 only: marks a Pokemon as obtained through a scripted/Mystery Gift encounter rather than
+   *  normal play. Optional so gen1-3 modules (which have no such concept) don't need to set it;
+   *  gen4's read/write paths preserve it like any other field. */
+  fatefulEncounter?: boolean;
 }
 
 export interface Trainer {
@@ -99,6 +103,9 @@ export interface EditableBox {
 export interface SaveFile {
   generation: Generation;
   gameTitle: string;
+  /** Short internal version code used to match event data to the loaded game (e.g. gen3 'RS'|'E'|
+   *  'FRLG', gen4 'DP'|'Pt'|'HGSS'). Undefined for generations with no event catalog (gen1/2). */
+  versionTag?: string;
   capabilities: GenerationCapabilities;
   trainer: Trainer;
   party: EditablePokemon[];

@@ -130,6 +130,7 @@ class Gen3SaveFile implements SaveFile {
   generation = 3 as const;
   capabilities = CAPABILITIES;
   gameTitle: string;
+  versionTag: Gen3Version;
   trainer;
   party;
   boxes: EditableBox[];
@@ -163,6 +164,7 @@ class Gen3SaveFile implements SaveFile {
     this.storageOriginal = storage;
 
     this.version = detectVersion(small);
+    this.versionTag = this.version;
     this.gameTitle = this.version === 'E' ? 'Pokémon Emerald' : this.version === 'FRLG' ? 'Pokémon FireRed/LeafGreen' : 'Pokémon Ruby/Sapphire';
     this.securityKey = this.version === 'E' ? readU32LE(small, SMALL_SECURITY_KEY_E)
       : this.version === 'FRLG' ? readU32LE(small, SMALL_SECURITY_KEY_FRLG) : 0;
