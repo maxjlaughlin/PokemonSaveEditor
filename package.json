@@ -25,6 +25,7 @@
   "build": {
     "appId": "com.pokemonsaveeditor.app",
     "productName": "Pokémon Save Editor",
+    "publish": null,
     "files": [
       "electron/**/*",
       "dist-standalone/**/*"
