@@ -27,6 +27,8 @@ jobs:
       - run: npm run build
         env:
           GITHUB_PAGES: 'true'
+      - run: npm run build:standalone
+      - run: cp dist-standalone/index.html dist/PokemonSaveEditor-standalone.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

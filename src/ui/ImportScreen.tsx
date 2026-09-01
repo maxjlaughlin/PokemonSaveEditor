@@ -85,6 +85,14 @@ export function ImportScreen({ onLoaded }: Props) {
       <div className="safety-note">
         <strong>Always keep a backup of your original save file</strong> before importing it here, in case of unexpected data loss.
       </div>
+
+      <p className="hint">
+        Want to run this offline, or share it with someone else?{' '}
+        <a href="./PokemonSaveEditor-standalone.html" download="PokemonSaveEditor.html">
+          Download it as a single HTML file
+        </a>{' '}
+        — no install, no server, works by double-clicking it.
+      </p>
     </div>
   );
 }

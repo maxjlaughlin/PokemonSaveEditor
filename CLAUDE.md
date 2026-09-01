@@ -33,7 +33,18 @@ npm run build      # type-check (tsc -b) + production build
 npm run lint        # oxlint
 npm run test:gen1   # ...gen2, gen3, gen4 — synthetic round-trip test per generation
 npm run test:events # round-trip test for Gen3/4 event injection
+npm run build:standalone # single self-contained HTML file (dist-standalone/)
 ```
+
+## Distribution
+
+Besides the GitHub Pages build (`npm run build`), two more distribution
+paths exist and both wrap the same static app — see README.md's "Getting it
+without building from source" for user-facing details:
+- `npm run build:standalone` — one self-contained HTML file (no server).
+- `.github/workflows/build-desktop.yml` — builds Windows/macOS/Linux desktop
+  installers via Electron (`electron/main.cjs`, loads the standalone build)
+  on a `v*` tag push. Binaries are unsigned.
 
 Always run the relevant `test:genN` script(s) after touching a generation's
 format module, and `npm run build` before considering a change done (it

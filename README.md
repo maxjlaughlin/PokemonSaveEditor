@@ -47,6 +47,24 @@ item dropdown isn't filtered to valid choices yet, so picking an item that
 doesn't belong in that pocket is silently ignored on export rather than
 flagged in the UI.
 
+## Getting it without building from source
+
+- **Single HTML file**: download it from the live site (a link is on the
+  import screen) or build it yourself with `npm run build:standalone` — the
+  result (`dist-standalone/index.html`) is one self-contained file with
+  everything inlined. Double-click it to open in your browser; no server,
+  no install, works fully offline.
+- **Desktop app (.exe / .app / .AppImage)**: pushing a `v*` tag (or running
+  the "Build desktop app" workflow manually from the Actions tab) builds
+  installers for Windows, macOS, and Linux via GitHub Actions and attaches
+  them to a GitHub Release. These aren't code-signed (that costs money and
+  isn't worth it for a small open-source tool), so Windows SmartScreen and
+  macOS Gatekeeper will warn on first run — on Windows click "More info" →
+  "Run anyway"; on macOS right-click the app → "Open" (or run
+  `xattr -cr /Applications/Pokémon\ Save\ Editor.app` once). The desktop app
+  is just the standalone HTML build wrapped in an Electron window — same
+  code, same safety properties (nothing leaves your machine).
+
 ## Development
 
 ```bash
@@ -58,6 +76,8 @@ npm run test:gen2 # synthetic round-trip test for the Gen2 save format
 npm run test:gen3 # synthetic round-trip test for the Gen3 save format
 npm run test:gen4 # synthetic round-trip test for the Gen4 save format
 npm run test:events # round-trip test for event injection (PID gen, Exp curve, item grants)
+npm run build:standalone # single self-contained HTML file (dist-standalone/index.html)
+npm run dist:mac / dist:win / dist:linux # desktop app installer for the current OS (needs Electron's binary download)
 ```
 
 ## Architecture
